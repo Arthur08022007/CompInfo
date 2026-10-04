@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+// findFirstTrue (generic).
+
 int findFirstTrue(bool (*f)(void *, int, void *), void *tab, int length, void *param)
 {
     int left = 0;
@@ -17,6 +19,8 @@ int findFirstTrue(bool (*f)(void *, int, void *), void *tab, int length, void *p
     }
     return left;
 }
+
+// Application 1
 
 static bool isPointOutOfBall(void *tab, int index, void *param)
 {
@@ -34,7 +38,9 @@ int findLastPointinBall(Point *tabp, int length, float radius)
     return firstOut - 1;
 }
 
-bool isEnough(void *tab, int index, void *param)
+// Application 2
+
+static bool isEnough(void *tab, int index, void *param)
 {
     float *p = (float *)param;
     float percentile = p[0];
