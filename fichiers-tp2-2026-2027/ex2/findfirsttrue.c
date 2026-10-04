@@ -22,19 +22,15 @@ int findFirstTrue(bool (*f)(void *, int, int, void *param), void *tab, int lengt
 
 // Application 1
 
-bool isPointInBall(void *tab, int index, int length, void *param)
+
+static bool isPointOutOfBall(void *tab, int index, int length, void *param)
 {
     (void)length;
     float radius = ((float *)param)[0]; 
     Point *points = (Point *)tab;
     float x = points[index].x;
     float y = points[index].y;
-    return (x*x + y*y <= radius*radius);
-}
-
-static bool isPointOutOfBall(void *tab, int index, int length, void *param)
-{
-    return !isPointInBall(tab, index, length, param);
+    return (x*x + y*y > radius*radius);
 }
 
 int findLastPointinBall(Point *tabp, int length, float radius)
@@ -45,7 +41,7 @@ int findLastPointinBall(Point *tabp, int length, float radius)
 }
 
 
-
+// Application 2
 
 bool isEnough(void *tab, int index,int length, void *param){
     float p=((float *)param)[0];
@@ -54,7 +50,7 @@ bool isEnough(void *tab, int index,int length, void *param){
     
 }
 
-// Application 2
+
 
 int getPercentile(int *tab, int length, float p)
 {
