@@ -15,6 +15,5 @@ int findLastPointinBall(Point *tab, int length, float radius);
 
 int getPercentile(int *tab, int length, float p);
 
-bool isEnough(void *tab, int index, void *param);
 
 #endif

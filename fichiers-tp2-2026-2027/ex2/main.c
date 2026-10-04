@@ -23,8 +23,8 @@ int main(void)
 {
   printf("Testing findLastPointInBall.\n");
 
-  Point parray[6] = {{0.0, 0.0}, {0.5, 0.5}, {1.0, 1.0}, {2.0, 2.0}, {4.0, 4.0}, {5.0, 5.0}};
-  float radius = 2.0;
+  Point parray[6] = {{8.0, 8.0}, {0.5, 0.5}, {10.0, 10.0}, {20.0, 20.0}, {40.0, 40.0}, {120.0, 120.0}};
+  float radius = 20.0;
 
   printf("Array: ");
   print_point_array(parray, 6);

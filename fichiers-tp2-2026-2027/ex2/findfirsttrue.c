@@ -26,8 +26,8 @@ static bool isPointOutOfBall(void *tab, int index, void *param)
 {
     float radius = ((float *)param)[0];
     Point *points = (Point *)tab;
-    float x = points[index].x;
-    float y = points[index].y;
+    float x = points[index].x - points[0].x;
+    float y = points[index].y - points[0].y;
     return (x * x + y * y > radius * radius);
 }
 
@@ -46,7 +46,7 @@ static bool isEnough(void *tab, int index, void *param)
     float percentile = p[0];
     int length = (int)p[1];
     int *intTab = (int *)tab;
-    return (intTab[index] > percentile * intTab[length - 1]);
+    return (intTab[index] > percentile* intTab[length - 1]);
 }
 
 int getPercentile(int *tab, int length, float p)
