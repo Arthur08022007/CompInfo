@@ -6,23 +6,18 @@
 
 int findFirstTrue(bool (*f)(void *, int, int, void *param), void *tab, int length, void *param)
 {
-    int left=0;
-    int right=length-1;
-    int middle= (right-left)/2;
-    while(left-middle<1){
-        if (f(tab, middle, length, param)){
-            right=middle;
-            
-        }else{
-            left=middle;
+    int left = 0;
+    int right = length;
+
+    while (left < right) {
+        int middle = left + (right - left) / 2;
+        if (f(tab, middle, length, param)) {
+            right = middle;
+        } else {
+            left = middle + 1;
         }
-        middle= right+(right-left)/2;
     }
-    if (!f(tab, right, length, param)){
-        return length;
-    }
-    printf("%d", middle);
-    return right;
+    return left;
 }
 
 // Application 1
@@ -37,11 +32,16 @@ bool isPointInBall(void *tab, int index, int length, void *param)
     return (x*x + y*y <= radius*radius);
 }
 
+static bool isPointOutOfBall(void *tab, int index, int length, void *param)
+{
+    return !isPointInBall(tab, index, length, param);
+}
+
 int findLastPointinBall(Point *tabp, int length, float radius)
 {
-    float param[1]={radius};
-    int firstOut=findFirstTrue(isPointInBall, tabp, length, param);
-    return firstOut-1;
+    float param[1] = {radius};
+    int firstOut = findFirstTrue(isPointOutOfBall, tabp, length, param);
+    return firstOut - 1;
 }
 
 
