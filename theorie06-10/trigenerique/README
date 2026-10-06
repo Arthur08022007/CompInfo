@@ -1,0 +1,11 @@
+Exemple d'utilisation de pointeurs sur void et pointeurs de fonctions pour définir un tri générique (basé sur le tri par insertion).
+
+Pour compiler le tout:
+make all
+
+Pour tester le tri d'un tableau d'entier:
+./mainint
+
+Pour tester le tri d'un tableau de complexe:
+./maincomplex
+
