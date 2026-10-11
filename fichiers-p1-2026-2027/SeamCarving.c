@@ -18,13 +18,18 @@ PNMImage *shrinkImageWidth(PNMImage *image, int k) //*image est un pointeur vers
     for (int i=0;i<k;i++){
         int *seam=computeMinEnergyVerticalSeam(prevImage, computePixelEnergyGradient);
         PNMImage *newImage=cutImageWidth(prevImage, seam);
+        if(prevImage != image){
+            freePNM(prevImage);
+        }
+        free(seam);
         prevImage=newImage;
         freePNM(newImage);
-        free(seam);
+        
     }
 
     return prevImage;
 }
+
 
 
 
