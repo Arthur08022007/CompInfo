@@ -23,7 +23,6 @@ PNMImage *shrinkImageWidth(PNMImage *image, int k) //*image est un pointeur vers
         }
         free(seam);
         prevImage=newImage;
-        freePNM(newImage);
         
     }
 
@@ -63,21 +62,21 @@ double computePixelEnergyGradient(PNMImage *image, int i, int j)
     double energyGrad=0;
     int width=image->width;
     int height=image->height;
-    int order=j*width+i;
+    int order=i*width+j;
     int left=order-1;
     int right=order+1;
     int up=order-width;
     int down=order+width;
-    if (i==0 ){
+    if (j==0 ){
         left=order;
     }
-    else if (i==width-1 ){
+    else if (j==width-1 ){
         right=order;
     }
-    if (j==0){
+    if (i==0){
         up=order;
     }
-    else if (j==height-1 ){
+    else if (i==height-1 ){
         down=order;
     }
     
@@ -151,7 +150,7 @@ int *computeMinEnergyVerticalSeam(PNMImage *image, double (*computePixelEnergy)(
 
     for (size_t j=2; j<image->height; j++){
         for (int i=min-1;i<=min+1;i++){
-            if (i==((image->width)-1)){
+            if (i==(image->width)){
                 continue;
             }
             if (i==-1){
