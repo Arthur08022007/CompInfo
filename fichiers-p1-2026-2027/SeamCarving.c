@@ -44,9 +44,9 @@ PNMImage *shrinkImageHeight(PNMImage *image, int k)
     PNMImage *shrinkedRotImage = shrinkImageWidth(rotatedImage, k);
 
     PNMImage *finalImage=createPNM(image->height-k,image->width);
-    for (int j=0;j<image->width;j++){
-        for (int i=0;i<image->height-k;i++){
-            finalImage->data[j*image->width+i]=shrinkedRotImage->data[i*image->width+j];
+    for (size_t j=0;j<shrinkedRotImage->width;j++){
+        for (size_t i=0;i<shrinkedRotImage->height-k;i++){
+            finalImage->data[i*image->width+j]=shrinkedRotImage->data[j*image->width+i];
         }
     }
 
