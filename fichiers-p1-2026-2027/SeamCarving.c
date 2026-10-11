@@ -57,7 +57,7 @@ double computePixelEnergyGradient(PNMImage *image, int i, int j)
     double energyGrad=0;
     int width=image->width;
     int height=image->height;
-    int order=i*width+j;
+    int order=j*width+i;
     int left=order-1;
     int right=order+1;
     int up=order-width;
