@@ -11,7 +11,7 @@ all: $(TARGET)
 clean:
 	rm -f $(OFILES) $(TARGET)
 run: $(TARGET)
-	./$(TARGET) bd1.pnm bd1-red.pnm 400 50
+	./$(TARGET) chateau.pnm chateau-red.pnm 100 50
 $(TARGET): $(OFILES)
 	$(CC) -o $(TARGET) $(OFILES) $(LDFLAGS)
 PNM.o: PNM.c PNM.h

@@ -83,13 +83,19 @@ double computePixelEnergyGradient(PNMImage *image, int i, int j)
     else if (i==height-1 ){
         down=order;
     }
+
+    int hr= image->data[left].red-image->data[right].red;
+    int hg=image->data[left].green-image->data[right].green;
+    int hb=image->data[left].blue-image->data[right].blue;
+
+    int vr=image->data[up].red-image->data[down].red;
+    int vg=image->data[up].green-image->data[down].green;
+    int vb=image->data[up].blue-image->data[down].blue;
     
-    energyGrad+=pow((image->data[left].red-image->data[right].red),2)+pow((image->data[up].red-image->data[down].red),2);
-    energyGrad+=pow((image->data[left].green-image->data[right].green),2)+pow((image->data[up].green-image->data[down].green),2);
-    energyGrad+=pow((image->data[left].blue-image->data[right].blue),2)+pow((image->data[up].blue-image->data[down].blue),2);
+    energyGrad=sqrt(hr*hr+hg*hg+hb*hb+vr*vr+vg*vg+vb*vb);
 
 
-    return sqrt(energyGrad);
+    return energyGrad;
 }
 
 /*
@@ -105,7 +111,7 @@ PNMImage *cutImageWidth(PNMImage *image, int *minSeam)
     unsigned numberDeleted=0;
     for (size_t i=0; i<image->height;i++){
         for (size_t j=0; j<image->width;j++){
-            if (j==minSeam[i]){
+            if ((int)j==minSeam[i]){
                 numberDeleted++;
                 continue;
             }
@@ -154,7 +160,7 @@ int *computeMinEnergyVerticalSeam(PNMImage *image, double (*computePixelEnergy)(
 
     for (size_t j=2; j<=image->height; j++){
         for (int i=min-1;i<=min+1;i++){
-            if (i==(image->width)){
+            if (i==(int)(image->width)){
                 continue;
             }
             if (i==-1){
