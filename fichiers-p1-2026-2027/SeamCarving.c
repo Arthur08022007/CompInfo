@@ -20,6 +20,7 @@ PNMImage *shrinkImageWidth(PNMImage *image, int k) //*image est un pointeur vers
         PNMImage *newImage=cutImageWidth(prevImage, seam);
         prevImage=newImage;
         freePNM(newImage);
+        free(seam);
     }
 
     return prevImage;
@@ -132,7 +133,7 @@ int *computeMinEnergyVerticalSeam(PNMImage *image, double (*computePixelEnergy)(
     }
     //On a une table M contenat l'énergie minimale pour arriver au pixel correspondant en partant de la première ligne 
 
-    int seam[image->height];
+    int *seam=malloc(image->height*sizeof(int));
     
     // On cherche le M de la dernière ligne de plus petite valeur
     int min=0;
