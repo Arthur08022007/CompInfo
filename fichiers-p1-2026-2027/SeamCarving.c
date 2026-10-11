@@ -37,18 +37,22 @@ PNMImage *shrinkImageHeight(PNMImage *image, int k)
     PNMImage *rotatedImage=createPNM(image->height,image->width);
     for (size_t j=0;j<image->width;j++){
         for (size_t i=0;i<image->height;i++){
-            rotatedImage->data[j*image->width+i]=image->data[i*image->width+j];
+            rotatedImage->data[j*rotatedImage->width+i]=image->data[i*image->width+j];
         }
     }
     PNMImage *shrinkedRotImage = shrinkImageWidth(rotatedImage, k);
 
-    PNMImage *finalImage=createPNM(image->height-k,image->width);
-    for (size_t j=0;j<shrinkedRotImage->width;j++){
-        for (size_t i=0;i<shrinkedRotImage->height-k;i++){
-            finalImage->data[i*image->width+j]=shrinkedRotImage->data[j*image->width+i];
+    PNMImage *finalImage=createPNM(image->width,image->height-k);
+    for (size_t j=0;j<image->width;j++){
+        for (size_t i=0;i<image->height-k;i++){
+            finalImage->data[i*finalImage->width+j]=shrinkedRotImage->data[j*shrinkedRotImage->width+i];
         }
     }
 
+    if (shrinkedRotImage != rotatedImage){
+        freePNM(shrinkedRotImage);
+    }
+    freePNM(rotatedImage);
 
     return finalImage;
 }
@@ -148,7 +152,7 @@ int *computeMinEnergyVerticalSeam(PNMImage *image, double (*computePixelEnergy)(
     }
     seam[image->height-1]=min;
 
-    for (size_t j=2; j<image->height; j++){
+    for (size_t j=2; j<=image->height; j++){
         for (int i=min-1;i<=min+1;i++){
             if (i==(image->width)){
                 continue;
