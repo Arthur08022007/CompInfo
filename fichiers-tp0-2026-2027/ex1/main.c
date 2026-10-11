@@ -16,7 +16,7 @@ int main(void)
     if (check_unique(t, 10)) {
         printf("All elements are unique.\n");
     } else {
-        printf("Elements are not all unique.\n");
+        printf("Les éléments ne sont pas tous uniques\n");
     }
     return (0);
 }
