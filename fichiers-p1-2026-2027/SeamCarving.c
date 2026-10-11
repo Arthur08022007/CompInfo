@@ -145,6 +145,12 @@ int *computeMinEnergyVerticalSeam(PNMImage *image, double (*computePixelEnergy)(
 
     for (size_t j=2; j<image->height; j++){
         for (int i=min-1;i<=min+1;i++){
+            if (i==((image->width)-1)){
+                continue;
+            }
+            if (i==-1){
+                continue;
+            }
             if (M[image->height-j][i]<M[image->height-j][min]){
                 min=i;
             } 
