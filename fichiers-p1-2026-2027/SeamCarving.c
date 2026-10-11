@@ -14,18 +14,38 @@ img passée en argument
 
 PNMImage *shrinkImageWidth(PNMImage *image, int k) //*image est un pointeur vers
 {
-    // A compléter
+    PNMImage *prevImage=image;
+    for (int i=0;i<k;i++){
+        int *seam=computeMinEnergyVerticalSeam(prevImage, computePixelEnergyGradient);
+        PNMImage *newImage=cutImageWidth(prevImage, seam);
+        prevImage=newImage;
+        freePNM(newImage);
+    }
 
-    return NULL;
+    return prevImage;
 }
 
 
 
 PNMImage *shrinkImageHeight(PNMImage *image, int k)
 {
-    // A compléter
+    PNMImage *rotatedImage=createPNM(image->height,image->width);
+    for (size_t j=0;j<image->width;j++){
+        for (size_t i=0;i<image->height;i++){
+            rotatedImage->data[j*image->width+i]=image->data[i*image->width+j];
+        }
+    }
+    PNMImage *shrinkedRotImage = shrinkImageWidth(rotatedImage, k);
 
-    return NULL;
+    PNMImage *finalImage=createPNM(image->height-k,image->width);
+    for (int j=0;j<image->width;j++){
+        for (int i=0;i<image->height-k;i++){
+            finalImage->data[j*image->width+i]=shrinkedRotImage->data[i*image->width+j];
+        }
+    }
+
+
+    return finalImage;
 }
 
 /*
@@ -35,24 +55,24 @@ Cette fonction doit renvoyer l’énergie à la position (i,j) dans l’image im
 double computePixelEnergyGradient(PNMImage *image, int i, int j)
 {
     double energyGrad=0;
-    int widht=image.widht;
-    int heightgh=image.height;
-    int order=i*widht+j;
+    int width=image->width;
+    int height=image->height;
+    int order=i*width+j;
     int left=order-1;
     int right=order+1;
-    int up=order-widht;
-    int down=order+widht;
+    int up=order-width;
+    int down=order+width;
     if (i==0 ){
-        int left=order;
+        left=order;
     }
-    else if (i==widht_1 ){
-        int right=order;
+    else if (i==width-1 ){
+        right=order;
     }
     if (j==0){
-        int up=order;
+        up=order;
     }
     else if (j==height-1 ){
-        int down=order;
+        down=order;
     }
     
     energyGrad+=pow((image->data[left].red-image->data[right].red),2)+pow((image->data[up].red-image->data[down].red),2);
@@ -72,21 +92,21 @@ le pixel (i,seam[i]) doit être retiré de l’image. Cette fonction ne doit pas
 
 PNMImage *cutImageWidth(PNMImage *image, int *minSeam)
 {
-    newImage = CreatePNM(image.widht-1, PNMImage.height);
+    PNMImage *newImage = createPNM(image->width-1, image->height);
     unsigned numberDeleted=0;
-    for (unsigned int i=0; i<image.height;i++){
-        for (unsigned int j=0; j<image.widht;j++){
+    for (size_t i=0; i<image->height;i++){
+        for (size_t j=0; j<image->width;j++){
             if (j==minSeam[i]){
                 numberDeleted++;
                 continue;
             }
-            newImage->data[i*image.widht+j-numberDeleted]=image->data[i*image.widht+j];
+            newImage->data[i*image->width+j-numberDeleted]=image->data[i*image->width+j];
 
         }
 
     } 
 
-    return *newImage;
+    return newImage;
 }
 
 
@@ -99,19 +119,40 @@ minimale dans l’image.
 
 int *computeMinEnergyVerticalSeam(PNMImage *image, double (*computePixelEnergy)(PNMImage *, int, int))
 {
-    int seam[image.height];
-    double M[image.height][image.widht];
-    for(unsigned i=0; i<image.widht;i++){
-        M[0][i]=computePixelEnergy(*image,0,i); //Remplir première ligne avec les énergies
+    double M[image->height][image->width];
+    for(unsigned i=0; i<image->width;i++){
+        M[0][i]=computePixelEnergy(image,0,i); //Remplir première ligne avec les énergies
     }
-    for (unsigned i=1;i<image.height;i++){
-        M[i][0]=computePixelEnergy(*image, i, 0)+fmin(computePixelEnergy(*image,i-1,0),computePixelEnergy(*image,i-1,1));
-        for (unsigned j=1;j<image.widht-1;j++){
-            M[i][j]=computePixelEnergy(*image, i, j)+fmin(computePixelEnergy(*image,i-1,j-1), computePixelEnergy(*image,i-1,j),computePixelEnergy(*image,i-1,j));
+    for (unsigned i=1;i<image->height;i++){
+        M[i][0]=computePixelEnergy(image, i, 0)+fmin(computePixelEnergy(image,i-1,0),computePixelEnergy(image,i-1,1));
+        for (unsigned j=1;j<image->width-1;j++){
+            M[i][j]=computePixelEnergy(image, i, j)+fmin(computePixelEnergy(image,i-1,j-1), fmin(computePixelEnergy(image,i-1,j),computePixelEnergy(image,i-1,j)));
         }
-        M[i][image.widht-1]=computePixelEnergy(*image, i, image.widht-1)+fmin(computePixelEnergy(*image,i-1,j-1),computePixelEnergy(*image,i-1,j));
+        M[i][image->width-1]=computePixelEnergy(image, i, image->width-1)+fmin(computePixelEnergy(image,i-1,image->width-1),computePixelEnergy(image,i-1,image->width-2));
     }
-    //On a une table M contenat l'énergie minimale pour arrievr au pixel correspondant en partant de la première ligne 
+    //On a une table M contenat l'énergie minimale pour arriver au pixel correspondant en partant de la première ligne 
+
+    int seam[image->height];
+    
+    // On cherche le M de la dernière ligne de plus petite valeur
+    int min=0;
+    for (size_t i=1; i<image->width;i++){
+        if (M[image->height-1][i]<M[image->height-1][min]){
+            min=i;
+        }
+    }
+    seam[image->height-1]=min;
+
+    for (size_t j=2; j<image->height; j++){
+        for (int i=min-1;i<=min+1;i++){
+            if (M[image->height-j][i]<M[image->height-j][min]){
+                min=i;
+            } 
+        }
+        seam[image->height-j]=min;
+    }
+
+
 
     return seam;
 }
