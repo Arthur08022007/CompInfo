@@ -138,12 +138,15 @@ int *computeMinEnergyVerticalSeam(PNMImage *image, double (*computePixelEnergy)(
     for(unsigned i=0; i<image->width;i++){
         M[0][i]=computePixelEnergy(image,0,i); //Remplir première ligne avec les énergies
     }
-    for (unsigned i=1;i<image->height;i++){
-        M[i][0]=computePixelEnergy(image, i, 0)+fmin(computePixelEnergy(image,i-1,0),computePixelEnergy(image,i-1,1));
-        for (unsigned j=1;j<image->width-1;j++){
-            M[i][j]=computePixelEnergy(image, i, j)+fmin(computePixelEnergy(image,i-1,j-1), fmin(computePixelEnergy(image,i-1,j),computePixelEnergy(image,i-1,j)));
+    for (unsigned i = 1; i < image->height; i++) {
+        for (unsigned j = 0; j < image->width; j++) {
+            double best = M[i - 1][j];
+            if (j > 0 && M[i - 1][j - 1] < best)
+                best = M[i - 1][j - 1];
+            if (j + 1 < image->width && M[i - 1][j + 1] < best)
+                best = M[i - 1][j + 1];
+            M[i][j] = computePixelEnergy(image, i, j) + best;
         }
-        M[i][image->width-1]=computePixelEnergy(image, i, image->width-1)+fmin(computePixelEnergy(image,i-1,image->width-1),computePixelEnergy(image,i-1,image->width-2));
     }
     //On a une table M contenat l'énergie minimale pour arriver au pixel correspondant en partant de la première ligne 
 
@@ -158,22 +161,16 @@ int *computeMinEnergyVerticalSeam(PNMImage *image, double (*computePixelEnergy)(
     }
     seam[image->height-1]=min;
 
-    for (size_t j=2; j<=image->height; j++){
-        for (int i=min-1;i<=min+1;i++){
-            if (i==(int)(image->width)){
+    for (size_t j = 2; j <= image->height; j++) {
+        int centre = min;
+        for (int i = centre - 1; i <= centre + 1; i++) {
+            if (i == (int)image->width || i == -1)
                 continue;
-            }
-            if (i==-1){
-                continue;
-            }
-            if (M[image->height-j][i]<M[image->height-j][min]){
-                min=i;
-            } 
+            if (M[image->height - j][i] < M[image->height - j][min])
+                min = i;
         }
-        seam[image->height-j]=min;
+        seam[image->height - j] = min;
     }
-
-
 
     return seam;
 }
