@@ -71,11 +71,17 @@ void particleMove(Particle *p,double dt){
 }
 
 void particleHandleCollision(Particle *p1, Particle *p2){
-    p1->velocity=vectorSum(p1->velocity, vectorMultByScalar(vectorDiff(p2->position,p1->position),vectorDotProduct(vectorDiff(p2->velocity,p1->velocity),vectorDiff(p2->position,p1->position))*2.0*(p2->mass)/((p1->mass+p2->mass)*vectorNorm(vectorDiff(p2->position,p1->position))*vectorNorm(vectorDiff(p2->position,p1->position)))));
-    p2->velocity=vectorDiff(p2->velocity, vectorMultByScalar(vectorDiff(p2->position,p1->position),vectorDotProduct(vectorDiff(p2->velocity,p1->velocity),vectorDiff(p2->position,p1->position))*2.0*(p1->mass)/((p1->mass+p2->mass)*vectorNorm(vectorDiff(p2->position,p1->position))*vectorNorm(vectorDiff(p2->position,p1->position)))));
+    Vector dp = vectorDiff(p2->position, p1->position);
+    Vector dv = vectorDiff(p2->velocity, p1->velocity);
+    double dist2 = vectorDotProduct(dp, dp);
+    double impulse = vectorDotProduct(dv, dp) * 2.0 / ((p1->mass + p2->mass) * dist2);
+    Vector v1 = p1->velocity;
+    Vector v2 = p2->velocity;
+
+    p1->velocity = vectorSum(v1, vectorMultByScalar(dp, impulse * p2->mass));
+    p2->velocity = vectorDiff(v2, vectorMultByScalar(dp, impulse * p1->mass));
     p1->numCollision++;
     p2->numCollision++;
-
 }
 
 void particleHandleXWallCollision(Particle *p){
