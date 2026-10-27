@@ -4,6 +4,7 @@
 #include "vector.h"
 #include "color.h"
 #include "math.h"
+#include "event.h"
 
 struct Particle_t
 {
@@ -13,6 +14,7 @@ struct Particle_t
     Vector velocity;
     Color color;
     double numCollision;
+    struct Event_t *nextEvent;
 };
 
 Particle *particleCreate(double radius, double mass, Vector position, Vector velocity, Color color){
@@ -30,12 +32,22 @@ Particle *particleCreate(double radius, double mass, Vector position, Vector vel
     p->velocity=velocity;
     p->color=color;
     p->numCollision=0;
+    p->nextEvent=NULL;
 
     return p;
 }
 
 void particleFree(Particle *p){
+    eventFree(p->nextEvent);
     free(p);
+}
+
+void particleSetNextEvent(Particle *p, struct Event_t *e){
+    p->nextEvent=e;
+}
+
+struct Event_t *particleGetNextEvent(Particle *p){
+    return p->nextEvent;
 }
 
 double particleGetRadius(Particle *p){

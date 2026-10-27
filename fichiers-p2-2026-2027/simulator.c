@@ -13,9 +13,100 @@ struct Simulator_t
     int numberOfParticles;
     double time;
     bool hasStarted;
+    bool predictionsReady;
+
+    /* Événement NONE renvoyé quand rien ne peut se produire. */
+    Event *nextEvent;
 
     Particle *particles[];
 };
+
+/* Premier événement impliquant p, stocké sur la particule. */
+static void rebuildPrediction(Simulator *s, Particle *p)
+{
+    EventType type = NONE;
+    Particle *partner = NULL;
+    double best = INFINITY_TIME;
+
+    double xTime = particleGetXWallCollisionTime(p, s->width);
+    if (xTime > 0 && s->time + xTime < best)
+    {
+        best = s->time + xTime;
+        type = XWALL;
+    }
+    double yTime = particleGetYWallCollisionTime(p, s->height);
+    if (yTime > 0 && s->time + yTime < best)
+    {
+        best = s->time + yTime;
+        type = YWALL;
+    }
+    for (int j = 0; j < s->numberOfParticles; j++)
+    {
+        Particle *other = s->particles[j];
+        if (other == p)
+            continue;
+        double collTime = particleGetCollisionTime(p, other);
+        if (collTime > 0 && s->time + collTime < best)
+        {
+            best = s->time + collTime;
+            type = COLLISION;
+            partner = other;
+        }
+    }
+    eventSet(particleGetNextEvent(p), type, p, partner, best);
+}
+
+static void ensurePredictions(Simulator *s)
+{
+    s->hasStarted = true;
+    if (s->predictionsReady)
+        return;
+
+    for (int i = 0; i < s->numberOfParticles; i++)
+    {
+        Particle *p = s->particles[i];
+        particleSetNextEvent(p, eventCreate(NONE, NULL, NULL, INFINITY_TIME));
+        rebuildPrediction(s, p);
+    }
+    s->predictionsReady = true;
+}
+
+static Event *findNextEvent(Simulator *s)
+{
+    Event *best = NULL;
+    double bestTime = INFINITY_TIME;
+
+    for (int i = 0; i < s->numberOfParticles; i++)
+    {
+        Event *e = particleGetNextEvent(s->particles[i]);
+        if (eventGetTime(e) < bestTime)
+        {
+            bestTime = eventGetTime(e);
+            best = e;
+        }
+    }
+    return best;
+}
+
+/* Recalcule les prédictions des particules dont la vitesse a changé, et
+ * celles dont l'événement mémorisé impliquait l'une d'elles. b vaut NULL
+ * si l'événement est un mur. */
+static void refreshAfterEvent(Simulator *s, Particle *a, Particle *b)
+{
+    rebuildPrediction(s, a);
+    if (b)
+        rebuildPrediction(s, b);
+
+    for (int k = 0; k < s->numberOfParticles; k++)
+    {
+        Particle *p = s->particles[k];
+        if (p == a || p == b)
+            continue;
+        Particle *partner = eventGetParticle2(particleGetNextEvent(p));
+        if (partner == a || (b && partner == b))
+            rebuildPrediction(s, p);
+    }
+}
 
 Simulator *simulatorCreate(double width, double height, int maxNumParticles)
 {
@@ -32,13 +123,18 @@ Simulator *simulatorCreate(double width, double height, int maxNumParticles)
     s->maxNumParticles = maxNumParticles;
     s->numberOfParticles = 0;
     s->hasStarted = false;
+    s->predictionsReady = false;
     s->time = 0;
+    s->nextEvent = eventCreate(NONE, NULL, NULL, INFINITY_TIME);
 
     return s;
 }
 
 void simulatorFree(Simulator *s)
 {
+    for (int i = 0; i < s->numberOfParticles; i++)
+        particleFree(s->particles[i]);
+    eventFree(s->nextEvent);
     free(s);
 }
 
@@ -108,49 +204,27 @@ Particle *simulatorGetParticle(Simulator *s, int index)
 
 Event *simulatorGetNextEvent(Simulator *s)
 {
-    Event *e = eventCreate(NONE, NULL, NULL, INFINITY_TIME);
-    double earliestTime = INFINITY_TIME;
-    for (int i = 0; i < s->numberOfParticles; i++)
+    ensurePredictions(s);
+
+    Event *best = findNextEvent(s);
+    if (!best)
     {
-        double xTime= particleGetXWallCollisionTime(s->particles[i], s->width);
-        if (xTime < earliestTime && xTime>0)
-        {
-            earliestTime = xTime;
-            eventSet(e, XWALL,s->particles[i],NULL,s->time+xTime);
-        }
-        double yTime= particleGetYWallCollisionTime(s->particles[i], s->height);
-        if (yTime < earliestTime && yTime>0)
-        {
-            earliestTime = yTime;
-            eventSet(e, YWALL,s->particles[i],NULL,s->time+yTime);
-        }
-        for (int j = i+1; j < s->numberOfParticles; j++)
-        {
-            double collTime=particleGetCollisionTime(s->particles[i], s->particles[j]);
-            if ( collTime < earliestTime && collTime>0)
-            {
-                earliestTime = collTime;
-                eventSet(e, COLLISION, s->particles[i], s->particles[j], s->time + collTime);
-            }
-        }
+        eventSet(s->nextEvent, NONE, NULL, NULL, INFINITY_TIME);
+        return s->nextEvent;
     }
-    return e;
+    return best;
 }
 
 void simulatorStep(Simulator *s, double dt)
 {
     s->hasStarted=true;
+    ensurePredictions(s);
     double endTime=s->time+dt;
-    
 
     while(s->time < endTime){
-        //on regadrde qui est le prochain évènement
         Event *nextEvent = simulatorGetNextEvent(s);
+        double eventTime = eventGetTime(nextEvent);
 
-        double eventTime= eventGetTime(nextEvent);//Temps absolu
-
-
-        //Si pas d'event ou temps trop loin; on avance juste les particules du temps restant
         if(eventGetType(nextEvent)==NONE||eventTime>endTime){
             double restantTime=endTime-(s->time);
             for (int i = 0; i < s->numberOfParticles; i++)
@@ -158,13 +232,11 @@ void simulatorStep(Simulator *s, double dt)
                 particleMove(s->particles[i],restantTime);
             }
             s->time=endTime;
-            eventFree(nextEvent);
             return;
         }
 
-        double timeToEvent= eventTime-(s->time); //temps relatif
+        double timeToEvent= eventTime-(s->time);
 
-        //On avance les particules jusqu'à l'event
         for (int i = 0; i < s->numberOfParticles; i++)
         {
             particleMove(s->particles[i],timeToEvent);
@@ -172,7 +244,6 @@ void simulatorStep(Simulator *s, double dt)
 
         s->time=eventTime;
 
-        //On exécute l'event
         if (eventGetType(nextEvent) == XWALL)
         {
             particleHandleXWallCollision(eventGetParticle1(nextEvent));
@@ -185,7 +256,8 @@ void simulatorStep(Simulator *s, double dt)
         {
             particleHandleCollision(eventGetParticle1(nextEvent), eventGetParticle2(nextEvent));
         }
-        eventFree(nextEvent);
+
+        refreshAfterEvent(s, eventGetParticle1(nextEvent), eventGetParticle2(nextEvent));
     }
 }
 

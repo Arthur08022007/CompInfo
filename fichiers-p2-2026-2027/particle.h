@@ -193,4 +193,23 @@ bool particleOverlap(Particle *p1, Particle *p2);
  */
 bool particleOutside(Particle *p, double width, double height);
 
+struct Event_t;
+
+/**
+ * @brief Stores the next event involving a particle. The particle becomes
+ * responsible for freeing it in particleFree. A previous event is not freed.
+ *
+ * @param p  A particle.
+ * @param e  The event to store.
+ */
+void particleSetNextEvent(Particle *p, struct Event_t *e);
+
+/**
+ * @brief Returns the next event stored on a particle.
+ *
+ * @param p  A particle.
+ * @return The stored event, or NULL if none has been stored.
+ */
+struct Event_t *particleGetNextEvent(Particle *p);
+
 #endif
