@@ -88,7 +88,9 @@ void particleHandleYWallCollision(Particle *p){
 
 }
 
-double partcileGetCollisionTime(Particle *p1, Particle *p2){
+//Verif en cours
+
+double particleGetCollisionTime(Particle *p1, Particle *p2){
     double sigma=p1->radius+p2->radius;
     Vector dV=vectorDiff(p2->velocity, p1->velocity);
     Vector dP=vectorDiff(p2->position, p1->position);
@@ -99,24 +101,31 @@ double partcileGetCollisionTime(Particle *p1, Particle *p2){
         return INFINITY_TIME;
     }
     else{
-        return -1*(vectorDotProduct(dV,dP)+sqrt(d))/vectorDotProduct(dV,dV);
+        //printf("Croisement dans: %f \n",(-1*(vectorDotProduct(dV,dP)+sqrt(d))/vectorDotProduct(dV,dV)));
+        //printf("Croisement dans: %f \n",-1*(vectorDotProduct(dV,dP)+sqrt(d)));
+
+        return ((-1*(vectorDotProduct(dV,dP)+sqrt(d)))/vectorDotProduct(dV,dV));
     }
 }
 
+
+//OK
 double particleGetXWallCollisionTime(Particle *p, double width){
     if((p->velocity.x)==0){
         return INFINITY_TIME;
-    }else if((p->velocity.x)>0){
+    }else if((p->velocity.x)<0){
         return((p->radius-(p->position.x))/(p->velocity.x));
     }else{
         return((width-(p->radius)-(p->position.x))/(p->velocity.x));
     }
 }
 
+//OK
 double particleGetYWallCollisionTime(Particle *p, double height){
     if((p->velocity.y)==0){
         return INFINITY_TIME;
-    }else if((p->velocity.y)>0){
+    }else if((p->velocity.y)<0){
+        //printf("temps: %f\n",((p->radius-(p->position.y))/(p->velocity.y)));
         return((p->radius-(p->position.y))/(p->velocity.y));
     }else{
         return((height-(p->radius)-(p->position.y))/(p->velocity.y));
@@ -139,11 +148,6 @@ bool particleOutside(Particle *p, double width, double height){
         return false;
     }
 }
-
-
-
-
-
 
 
 
