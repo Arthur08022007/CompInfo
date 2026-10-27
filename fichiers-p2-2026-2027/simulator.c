@@ -134,7 +134,6 @@ Event *simulatorGetNextEvent(Simulator *s)
             }
         }
     }
-    printf("Type:%d\n",eventGetType(e));
     return e;
 }
 
