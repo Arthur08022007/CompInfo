@@ -144,10 +144,13 @@ void simulatorStep(Simulator *s, double dt)
     
 
     while(s->time < endTime){
+        //on regadrde qui est le prochain évènement
         Event *nextEvent = simulatorGetNextEvent(s);
 
         double eventTime= eventGetTime(nextEvent);//Temps absolu
 
+
+        //Si pas d'event ou temps trop loin; on avance juste les particules du temps restant
         if(eventGetType(nextEvent)==NONE||eventTime>endTime){
             double restantTime=endTime-(s->time);
             for (int i = 0; i < s->numberOfParticles; i++)
@@ -161,6 +164,7 @@ void simulatorStep(Simulator *s, double dt)
 
         double timeToEvent= eventTime-(s->time); //temps relatif
 
+        //On avance les particules jusqu'à l'event
         for (int i = 0; i < s->numberOfParticles; i++)
         {
             particleMove(s->particles[i],timeToEvent);
@@ -168,6 +172,7 @@ void simulatorStep(Simulator *s, double dt)
 
         s->time=eventTime;
 
+        //On exécute l'event
         if (eventGetType(nextEvent) == XWALL)
         {
             particleHandleXWallCollision(eventGetParticle1(nextEvent));
