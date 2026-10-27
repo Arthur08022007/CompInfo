@@ -134,6 +134,7 @@ Event *simulatorGetNextEvent(Simulator *s)
             }
         }
     }
+    printf("Time absolu to next:%f\n",eventGetTime(e));
     return e;
 }
 
@@ -146,7 +147,7 @@ void simulatorStep(Simulator *s, double dt)
     while(s->time < endTime){
         Event *nextEvent = simulatorGetNextEvent(s);
 
-        double eventTime= eventGetTime(nextEvent) - s->time;
+        double eventTime= eventGetTime(nextEvent);//Temps absolu
 
         if(eventGetType(nextEvent)==NONE||eventTime>endTime){
             double restantTime=endTime-(s->time);
@@ -159,13 +160,13 @@ void simulatorStep(Simulator *s, double dt)
             return;
         }
 
-        double timeToEvent= eventTime-(s->time);
+        double timeToEvent= eventTime-(s->time); //temps relatif
 
         for (int i = 0; i < s->numberOfParticles; i++)
         {
             particleMove(s->particles[i],timeToEvent);
         }
-        
+
         s->time=eventTime;
 
         if (eventGetType(nextEvent) == XWALL)
