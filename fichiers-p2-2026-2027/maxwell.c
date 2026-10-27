@@ -7,14 +7,14 @@
 
 
 int main(){
-    int particleNumber=8000;
-    int width=400;
-    int height=400;
+    int particleNumber=1000;
+    int width=200;
+    int height=200;
     double particleMass=1.0;
     double particleRadius=1.0;
     double particleSpeed=1.0;
     double numbColl=500.0;
-    double dt=10;
+    double dt=1.0;
     Color particleColor=COLOR_BLUE;
     bool added=false;
     Simulator *s=simulatorCreate(width, height, particleNumber);
