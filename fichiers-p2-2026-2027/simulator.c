@@ -134,7 +134,7 @@ Event *simulatorGetNextEvent(Simulator *s)
             }
         }
     }
-    printf("Time absolu to next:%f\n",eventGetTime(e));
+    printf("Type:%d\n",eventGetType(e));
     return e;
 }
 
