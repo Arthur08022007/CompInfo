@@ -9,6 +9,9 @@
 
 build/
 
+*.txt
+*.gif
+
 # Linker output
 *.ilk
 *.map
