@@ -21,21 +21,18 @@ def generer_graphe(chemin_fichier):
 
     # 4. Tracer l'histogramme des données réelles (normalisé avec density=True)
     # On définit des intervalles (bins) d'une largeur de 0.2 allant de 0 à 2.4
-    intervalles = np.arange(0, 2.6, 0.1)
-    plt.hist(vitesses, bins=intervalles, density=True, alpha=0.6, 
-             color='#3498db', edgecolor='black', label='Données réelles (Histogramme)')
+    intervalles = np.arange(0, 2.6, 0.15)
+    plt.hist(vitesses, bins=intervalles, density=True, alpha=0.6, color='#3498db', edgecolor='black', label='Données réelles (Histogramme)')
 
     # 5. Tracer la courbe théorique de Maxwell-Boltzmann
     # Formule pour m = 1 et k_B*T = 0.5 : f(v) = 2 * v * exp(-v^2)
     v_theorique = np.linspace(0, 2.5, 500)
     f_v = 2 * v_theorique * np.exp(-v_theorique**2)
     
-    plt.plot(v_theorique, f_v, color='#e74c3c', linewidth=2.5, 
-             label='Courbe théorique : $2v \\cdot e^{-v^2}$')
+    plt.plot(v_theorique, f_v, color='#e74c3c', linewidth=2.5, label='Courbe théorique : $2v \\cdot e^{-v^2}$')
 
     # 6. Habillage et mise en forme du graphique
-    plt.title('Distribution des vitesses de particules\n(Maxwell-Boltzmann pour $m=1$ et $k_B T=0.5$)', 
-              fontsize=14, fontweight='bold', pad=15)
+    plt.title('Distribution des vitesses de particules\n(Maxwell-Boltzmann pour $m=1$ et $k_B T=0.5$)', fontsize=14, fontweight='bold', pad=15)
     plt.xlabel('Vitesse $v$', fontsize=12)
     plt.ylabel('Densité de probabilité $f(v)$', fontsize=12)
     plt.xlim(0, 2.6)
