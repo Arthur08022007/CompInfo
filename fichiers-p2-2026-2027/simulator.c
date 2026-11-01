@@ -21,7 +21,7 @@ struct Simulator_t
     Particle *particles[];
 };
 
-/* Premier événement impliquant p, stocké sur la particule. */
+//Trouve le premier évenement d'une particule donnée et le met à jour
 static void rebuildPrediction(Simulator *s, Particle *p)
 {
     EventType type = NONE;
@@ -88,9 +88,7 @@ static Event *findNextEvent(Simulator *s)
     return best;
 }
 
-/* Recalcule les prédictions des particules dont la vitesse a changé, et
- * celles dont l'événement mémorisé impliquait l'une d'elles. b vaut NULL
- * si l'événement est un mur. */
+//Calcul pour particule changées
 static void refreshAfterEvent(Simulator *s, Particle *a, Particle *b)
 {
     rebuildPrediction(s, a);
