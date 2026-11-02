@@ -7,8 +7,8 @@
 
 struct Simulator_t
 {
-    int width;
-    int height;
+    double width;
+    double height;
     int maxNumParticles;
     int numberOfParticles;
     double time;
