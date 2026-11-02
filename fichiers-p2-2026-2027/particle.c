@@ -71,6 +71,10 @@ void particleMove(Particle *p,double dt){
 }
 
 void particleHandleCollision(Particle *p1, Particle *p2){
+    if (p1 == p2) {
+        return;
+    }
+
     Vector dp = vectorDiff(p2->position, p1->position);
     Vector dv = vectorDiff(p2->velocity, p1->velocity);
     double dist2 = vectorDotProduct(dp, dp);
@@ -154,6 +158,5 @@ bool particleOutside(Particle *p, double width, double height){
         return false;
     }
 }
-
 
 
