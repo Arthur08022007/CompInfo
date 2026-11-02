@@ -160,7 +160,7 @@ void simulatorStep(Simulator *s, double dt)
 
 
         //Si pas d'event ou temps trop loin; on avance juste les particules du temps restant
-        if(eventGetType(nextEvent)==NONE||eventTime>endTime){
+        if(eventGetType(nextEvent)==NONE||eventTime>=endTime){
             double restantTime=endTime-(s->time);
             for (int i = 0; i < s->numberOfParticles; i++)
             {
