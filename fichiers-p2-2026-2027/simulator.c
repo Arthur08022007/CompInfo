@@ -4,6 +4,7 @@
 #include "simulator.h"
 #include "particle.h"
 #include "event.h"
+//la fonction de mise à jour prends en arguments un sim et un event
 
 struct Simulator_t
 {
@@ -14,12 +15,66 @@ struct Simulator_t
     double time;
     bool hasStarted;
 
-    Particle *particles[];
+    Particle **particles;
+    Event **nextEvents;
 };
+
+static Event *particleSearchNextEvent(Particle *p, Simulator *s)
+{
+    Event *e = eventCreate(NONE, NULL, NULL, INFINITY_TIME);
+    double earliestTime = INFINITY_TIME;
+
+    for (int i = 0; i < s->numberOfParticles; i++)
+    {
+        if (p == s->particles[i])
+            continue;
+
+        double collisionTime = particleGetCollisionTime(p, s->particles[i]);
+        if (collisionTime >= 0 && collisionTime < earliestTime)
+        {
+            earliestTime = collisionTime;
+            eventSet(e, COLLISION, p, s->particles[i], s->time + collisionTime);
+        }
+    }
+
+    double xWallCollisionTime = particleGetXWallCollisionTime(p, s->width);
+    if (xWallCollisionTime >= 0 && xWallCollisionTime < earliestTime)
+    {
+        earliestTime = xWallCollisionTime;
+        eventSet(e, XWALL, p, NULL, s->time + xWallCollisionTime);
+    }
+
+    double yWallCollisionTime = particleGetYWallCollisionTime(p, s->height);
+    if (yWallCollisionTime >= 0 && yWallCollisionTime < earliestTime)
+    {
+        earliestTime = yWallCollisionTime;
+        eventSet(e, YWALL, p, NULL, s->time + yWallCollisionTime);
+    }
+
+    return e;
+}
+
+static void updateNextEvent(Simulator *s, Event *e)
+{
+    if (eventGetType(e) == NONE)
+    {
+        return;
+    }
+
+    for (int i = 0; i < s->numberOfParticles; i++)
+    {
+        if (s->particles[i] == eventGetParticle1(e) ||
+            s->particles[i] == eventGetParticle2(e))
+        {
+            s->nextEvents[i] = e;
+        }
+    }
+}
 
 Simulator *simulatorCreate(double width, double height, int maxNumParticles)
 {
-    Simulator *s = malloc(sizeof(Simulator) + maxNumParticles * sizeof(Particle *));
+    Simulator *s = malloc(sizeof(Simulator) +
+                          maxNumParticles * (sizeof(Particle *) + sizeof(Event *)));
 
     if (!s)
     {
@@ -33,6 +88,13 @@ Simulator *simulatorCreate(double width, double height, int maxNumParticles)
     s->numberOfParticles = 0;
     s->hasStarted = false;
     s->time = 0;
+    s->particles = (Particle **)(s + 1);
+    s->nextEvents = (Event **)(s->particles + maxNumParticles);
+    for (int i = 0; i < maxNumParticles; i++)
+    {
+        s->particles[i] = NULL;
+        s->nextEvents[i] = NULL;
+    }
 
     return s;
 }
@@ -121,26 +183,14 @@ Event *simulatorGetNextEvent(Simulator *s)
     double earliestTime = INFINITY_TIME;
     for (int i = 0; i < s->numberOfParticles; i++)
     {
-        double xTime= particleGetXWallCollisionTime(s->particles[i], s->width);
-        if (xTime < earliestTime && xTime >= 0)
+        if (s->nextEvents[i] == NULL)
         {
-            earliestTime = xTime;
-            eventSet(e, XWALL,s->particles[i],NULL,s->time+xTime);
+            s->nextEvents[i] = particleSearchNextEvent(s->particles[i], s);
         }
-        double yTime= particleGetYWallCollisionTime(s->particles[i], s->height);
-        if (yTime < earliestTime && yTime >= 0)
+        if (eventGetTime(s->nextEvents[i]) <= earliestTime)
         {
-            earliestTime = yTime;
-            eventSet(e, YWALL,s->particles[i],NULL,s->time+yTime);
-        }
-        for (int j = i+1; j < s->numberOfParticles; j++)
-        {
-            double collTime=particleGetCollisionTime(s->particles[i], s->particles[j]);
-            if (collTime < earliestTime && collTime >= 0)
-            {
-                earliestTime = collTime;
-                eventSet(e, COLLISION, s->particles[i], s->particles[j], s->time + collTime);
-            }
+            earliestTime = eventGetTime(s->nextEvents[i]);
+            e = s->nextEvents[i];
         }
     }
     return e;
@@ -167,7 +217,10 @@ void simulatorStep(Simulator *s, double dt)
                 particleMove(s->particles[i],restantTime);
             }
             s->time=endTime;
-            eventFree(nextEvent);
+            if (eventGetType(nextEvent) == NONE)
+            {
+                eventFree(nextEvent);
+            }
             return;
         }
 
@@ -194,7 +247,22 @@ void simulatorStep(Simulator *s, double dt)
         {
             particleHandleCollision(eventGetParticle1(nextEvent), eventGetParticle2(nextEvent));
         }
+        
+
+        if (eventGetParticle1(nextEvent))
+        {
+            Event *next = particleSearchNextEvent(eventGetParticle1(nextEvent), s);
+            updateNextEvent(s, next);
+        }
+        if (eventGetParticle2(nextEvent))
+        {
+            Event *next = particleSearchNextEvent(eventGetParticle2(nextEvent), s);
+            updateNextEvent(s, next);
+        }
         eventFree(nextEvent);
+
+
+
     }
 }
 

@@ -50,6 +50,9 @@ SimGIF *createGif(Simulator *s, const char *filename, int maxsize)
             0xA7,
             0x00,
             0xFF, /* 6 -> purple: #a700ff */
+            0x00,
+            0x00,
+            0x00, /* 7 -> unused */
         },
         3, /* palette depth == log2(# of colors) */
         1  /* Play it once */

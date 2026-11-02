@@ -104,8 +104,10 @@ double particleGetCollisionTime(Particle *p1, Particle *p2){
     double sigma=p1->radius+p2->radius;
     Vector dV=vectorDiff(p2->velocity, p1->velocity);
     Vector dP=vectorDiff(p2->position, p1->position);
+    double dv2 = vectorDotProduct(dV, dV);
+    double dpdv = vectorDotProduct(dV, dP);
     double d=(vectorDotProduct(dV,dP)*vectorDotProduct(dV,dP))-(vectorDotProduct(dV,dV)*(vectorDotProduct(dP,dP)-(sigma*sigma)));
-    if(vectorDotProduct(dV,dP)>=0){
+    if(dv2 == 0 || dpdv >= 0){
         return INFINITY_TIME;
     }else if(d<0){
         return INFINITY_TIME;
@@ -114,7 +116,8 @@ double particleGetCollisionTime(Particle *p1, Particle *p2){
         //printf("Croisement dans: %f \n",(-1*(vectorDotProduct(dV,dP)+sqrt(d))/vectorDotProduct(dV,dV)));
         //printf("Croisement dans: %f \n",-1*(vectorDotProduct(dV,dP)+sqrt(d)));
 
-        return ((-1*(vectorDotProduct(dV,dP)+sqrt(d)))/vectorDotProduct(dV,dV));
+        double collisionTime = (-dpdv - sqrt(d)) / dv2;
+        return collisionTime >= 0 ? collisionTime : INFINITY_TIME;
     }
 }
 
@@ -124,9 +127,11 @@ double particleGetXWallCollisionTime(Particle *p, double width){
     if((p->velocity.x)==0){
         return INFINITY_TIME;
     }else if((p->velocity.x)<0){
-        return((p->radius-(p->position.x))/(p->velocity.x));
+        double collisionTime = (p->radius-(p->position.x))/(p->velocity.x);
+        return collisionTime >= 0 ? collisionTime : INFINITY_TIME;
     }else{
-        return((width-(p->radius)-(p->position.x))/(p->velocity.x));
+        double collisionTime = (width-(p->radius)-(p->position.x))/(p->velocity.x);
+        return collisionTime >= 0 ? collisionTime : INFINITY_TIME;
     }
 }
 
@@ -136,9 +141,11 @@ double particleGetYWallCollisionTime(Particle *p, double height){
         return INFINITY_TIME;
     }else if((p->velocity.y)<0){
         //printf("temps: %f\n",((p->radius-(p->position.y))/(p->velocity.y)));
-        return((p->radius-(p->position.y))/(p->velocity.y));
+        double collisionTime = (p->radius-(p->position.y))/(p->velocity.y);
+        return collisionTime >= 0 ? collisionTime : INFINITY_TIME;
     }else{
-        return((height-(p->radius)-(p->position.y))/(p->velocity.y));
+        double collisionTime = (height-(p->radius)-(p->position.y))/(p->velocity.y);
+        return collisionTime >= 0 ? collisionTime : INFINITY_TIME;
     }
 }
 
@@ -158,5 +165,4 @@ bool particleOutside(Particle *p, double width, double height){
         return false;
     }
 }
-
 
