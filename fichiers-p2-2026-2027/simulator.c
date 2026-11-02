@@ -122,13 +122,13 @@ Event *simulatorGetNextEvent(Simulator *s)
     for (int i = 0; i < s->numberOfParticles; i++)
     {
         double xTime= particleGetXWallCollisionTime(s->particles[i], s->width);
-        if (xTime < earliestTime && xTime>0)
+        if (xTime < earliestTime && xTime >= 0)
         {
             earliestTime = xTime;
             eventSet(e, XWALL,s->particles[i],NULL,s->time+xTime);
         }
         double yTime= particleGetYWallCollisionTime(s->particles[i], s->height);
-        if (yTime < earliestTime && yTime>0)
+        if (yTime < earliestTime && yTime >= 0)
         {
             earliestTime = yTime;
             eventSet(e, YWALL,s->particles[i],NULL,s->time+yTime);
