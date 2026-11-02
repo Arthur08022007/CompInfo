@@ -210,8 +210,6 @@ Event *simulatorGetNextEvent(Simulator *s)
 
 void simulatorStep(Simulator *s, double dt)
 {
-    s->hasStarted=true;
-    ensurePredictions(s);
     double endTime=s->time+dt;
 
     while(s->time < endTime){
