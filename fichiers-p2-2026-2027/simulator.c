@@ -158,9 +158,9 @@ static void setPrediction(Simulator *s, Particle *p)
 //Calcul pour particule changées
 static void refreshAfterEvent(Simulator *s, Particle *a, Particle *b)
 {
-    rebuildPrediction(s, a);
+    setPrediction(s, a);
     if (b)
-        rebuildPrediction(s, b);
+        setPrediction(s, b);
 
     for (int k = 0; k < s->numberOfParticles; k++)
     {
@@ -169,7 +169,7 @@ static void refreshAfterEvent(Simulator *s, Particle *a, Particle *b)
             continue;
         Particle *partner = eventGetParticle2(particleGetNextEvent(p));
         if (partner == a || (b && partner == b))
-            rebuildPrediction(s, p);
+            setPrediction(s, p);
     }
 }
 
