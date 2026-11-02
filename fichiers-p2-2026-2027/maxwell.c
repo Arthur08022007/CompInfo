@@ -14,7 +14,7 @@ int main(){
     double particleRadius=1.0;
     double particleSpeed=1.0;
     double numbColl=50.0;
-    double dt=1.0;
+    double dt=0.1;
     Color particleColor=COLOR_BLUE;
     bool added=false;
     Simulator *s=simulatorCreate(width, height, particleNumber);
