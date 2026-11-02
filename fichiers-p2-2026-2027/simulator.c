@@ -60,7 +60,7 @@ int simulatorGetNumCollisions(Simulator *s)
         numColl += particleGetNumCollisions(s->particles[i]);
     }
     
-    return numColl;
+    return numColl / 2;
 }
 
 double simulatorGetElapsedTime(Simulator *s)
@@ -75,7 +75,11 @@ int simulatorGetNumberOfParticles(Simulator *s)
 
 bool simulatorAddParticle(Simulator *s, Particle *p)
 {
-
+    if (s->hasStarted)
+    {
+        return false;
+    }
+    
     if (s->numberOfParticles == s->maxNumParticles)
     {
         return false;
