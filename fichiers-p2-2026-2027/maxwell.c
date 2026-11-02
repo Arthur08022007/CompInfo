@@ -35,18 +35,14 @@ int main(){
             added=simulatorAddParticle(s,p);
         }
         added=false;
-        printf("Particule %d ajoutée\n",i+1);
 
     }
     while(simulatorStatParticles(s, particleGetNumCollisions)<numbColl){
         simulatorStep(s,dt);
         printf("Nombre moyen de collision: %.2f\n",simulatorStatParticles(s, particleGetNumCollisions));
     }
-    FILE *fichier = fopen("results/particlesVelocity.txt", "w");
-    if (fichier == NULL) {
-        printf("Erreur lors de l'ouverture du fichier.\n");
-        return 1;
-    }
+    FILE *fichier = fopen("particlesVelocity.txt", "w");
+
 
     for (int i=0;i<particleNumber;i++){
         double speedNorm=vectorNorm(particleGetVelocity(simulatorGetParticle(s,i)));
