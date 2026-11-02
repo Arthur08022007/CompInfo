@@ -116,6 +116,7 @@ Particle *simulatorGetParticle(Simulator *s, int index)
 
 Event *simulatorGetNextEvent(Simulator *s)
 {
+    s->hasStarted=true;
     Event *e = eventCreate(NONE, NULL, NULL, INFINITY_TIME);
     double earliestTime = INFINITY_TIME;
     for (int i = 0; i < s->numberOfParticles; i++)
@@ -135,7 +136,7 @@ Event *simulatorGetNextEvent(Simulator *s)
         for (int j = i+1; j < s->numberOfParticles; j++)
         {
             double collTime=particleGetCollisionTime(s->particles[i], s->particles[j]);
-            if ( collTime < earliestTime && collTime>0)
+            if (collTime < earliestTime && collTime >= 0)
             {
                 earliestTime = collTime;
                 eventSet(e, COLLISION, s->particles[i], s->particles[j], s->time + collTime);
