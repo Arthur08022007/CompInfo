@@ -103,6 +103,10 @@ bool simulatorAddParticle(Simulator *s, Particle *p)
 
 Particle *simulatorGetParticle(Simulator *s, int index)
 {
+    if (index >= s->numberOfParticles)
+    {
+        return NULL;
+    }
     return s->particles[index];
 }
 
