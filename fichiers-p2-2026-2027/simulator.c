@@ -22,89 +22,7 @@ struct Simulator_t
 };
 
 //Trouve le premier évenement d'une particule donnée et le met à jour
-static void rebuildPrediction(Simulator *s, Particle *p)
-{
-    EventType type = NONE;
-    Particle *partner = NULL;
-    double best = INFINITY_TIME;
 
-    double xTime = particleGetXWallCollisionTime(p, s->width);
-    if (xTime > 0 && s->time + xTime < best)
-    {
-        best = s->time + xTime;
-        type = XWALL;
-    }
-    double yTime = particleGetYWallCollisionTime(p, s->height);
-    if (yTime > 0 && s->time + yTime < best)
-    {
-        best = s->time + yTime;
-        type = YWALL;
-    }
-    for (int j = 0; j < s->numberOfParticles; j++)
-    {
-        Particle *other = s->particles[j];
-        if (other == p)
-            continue;
-        double collTime = particleGetCollisionTime(p, other);
-        if (collTime > 0 && s->time + collTime < best)
-        {
-            best = s->time + collTime;
-            type = COLLISION;
-            partner = other;
-        }
-    }
-    eventSet(particleGetNextEvent(p), type, p, partner, best);
-}
-
-static void ensurePredictions(Simulator *s)
-{
-    s->hasStarted = true;
-    if (s->predictionsReady)
-        return;
-
-    for (int i = 0; i < s->numberOfParticles; i++)
-    {
-        Particle *p = s->particles[i];
-        particleSetNextEvent(p, eventCreate(NONE, NULL, NULL, INFINITY_TIME));
-        rebuildPrediction(s, p);
-    }
-    s->predictionsReady = true;
-}
-
-static Event *findNextEvent(Simulator *s)
-{
-    Event *best = NULL;
-    double bestTime = INFINITY_TIME;
-
-    for (int i = 0; i < s->numberOfParticles; i++)
-    {
-        Event *e = particleGetNextEvent(s->particles[i]);
-        if (eventGetTime(e) < bestTime)
-        {
-            bestTime = eventGetTime(e);
-            best = e;
-        }
-    }
-    return best;
-}
-
-//Calcul pour particule changées
-static void refreshAfterEvent(Simulator *s, Particle *a, Particle *b)
-{
-    rebuildPrediction(s, a);
-    if (b)
-        rebuildPrediction(s, b);
-
-    for (int k = 0; k < s->numberOfParticles; k++)
-    {
-        Particle *p = s->particles[k];
-        if (p == a || p == b)
-            continue;
-        Particle *partner = eventGetParticle2(particleGetNextEvent(p));
-        if (partner == a || (b && partner == b))
-            rebuildPrediction(s, p);
-    }
-}
 
 Simulator *simulatorCreate(double width, double height, int maxNumParticles)
 {
@@ -200,11 +118,88 @@ Particle *simulatorGetParticle(Simulator *s, int index)
     return s->particles[index];
 }
 
+static void setPrediction(Simulator *s, Particle *p)
+{
+    EventType type = NONE;
+    Particle *partner = NULL;
+    double best = INFINITY_TIME;
+
+    double xTime = particleGetXWallCollisionTime(p, s->width);
+    if (xTime > 0 && s->time + xTime < best)
+    {
+        best = s->time + xTime;
+        type = XWALL;
+    }
+    double yTime = particleGetYWallCollisionTime(p, s->height);
+    if (yTime > 0 && s->time + yTime < best)
+    {
+        best = s->time + yTime;
+        type = YWALL;
+    }
+    for (int j = 0; j < s->numberOfParticles; j++)
+    {
+        Particle *other = s->particles[j];
+        if (other == p)
+            continue;
+        double collTime = particleGetCollisionTime(p, other);
+        if (collTime > 0 && s->time + collTime < best)
+        {
+            best = s->time + collTime;
+            type = COLLISION;
+            partner = other;
+        }
+    }
+    eventSet(particleGetNextEvent(p), type, p, partner, best);
+}
+
+
+
+
+//Calcul pour particule changées
+static void refreshAfterEvent(Simulator *s, Particle *a, Particle *b)
+{
+    rebuildPrediction(s, a);
+    if (b)
+        rebuildPrediction(s, b);
+
+    for (int k = 0; k < s->numberOfParticles; k++)
+    {
+        Particle *p = s->particles[k];
+        if (p == a || p == b)
+            continue;
+        Particle *partner = eventGetParticle2(particleGetNextEvent(p));
+        if (partner == a || (b && partner == b))
+            rebuildPrediction(s, p);
+    }
+}
+
 Event *simulatorGetNextEvent(Simulator *s)
 {
-    ensurePredictions(s);
+     
+    if(!s->hasStarted){//Si la simulation n'a pas encore commencé,
+        for (int i = 0; i < s->numberOfParticles; i++) //On initialise les prédictions pour toutes les particules
+        {
+            Particle *p = s->particles[i];
+            particleSetNextEvent(p, eventCreate(NONE, NULL, NULL, INFINITY_TIME));
+            setPrediction(s, p);
+        }
+    }
 
-    Event *best = findNextEvent(s);
+    s->hasStarted = true;//La simulations commence au permier appel
+    
+    Event *best = NULL;//On cherche le meilleur évenement
+    double bestTime = INFINITY_TIME;
+
+    for (int i = 0; i < s->numberOfParticles; i++) //On parcourt toutes les particules pour trouver le meilleur évenement
+    {
+        Event *e = particleGetNextEvent(s->particles[i]);
+        if (eventGetTime(e) < bestTime)
+        {
+            bestTime = eventGetTime(e);
+            best = e;
+        }
+    }
+
     if (!best)
     {
         eventSet(s->nextEvent, NONE, NULL, NULL, INFINITY_TIME);
