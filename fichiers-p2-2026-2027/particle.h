@@ -195,9 +195,5 @@ bool particleOutside(Particle *p, double width, double height);
 
 struct Event_t;
 
-void particleSetNextEvent(Particle *p, struct Event_t *e);
-
-
-struct Event_t *particleGetNextEvent(Particle *p);
 
 #endif
