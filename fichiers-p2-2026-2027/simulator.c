@@ -54,21 +54,9 @@ static Event *particleSearchNextEvent(Particle *p, Simulator *s)
     return e;
 }
 
-static void updateNextEvent(Simulator *s, Event *e)
+static void updateNextEvent(Simulator *s, int particleIndex, Event *e)
 {
-    if (eventGetType(e) == NONE)
-    {
-        return;
-    }
-
-    for (int i = 0; i < s->numberOfParticles; i++)
-    {
-        if (s->particles[i] == eventGetParticle1(e) ||
-            s->particles[i] == eventGetParticle2(e))
-        {
-            s->nextEvents[i] = e;
-        }
-    }
+    s->nextEvents[particleIndex] = e;
 }
 
 Simulator *simulatorCreate(double width, double height, int maxNumParticles)
@@ -249,20 +237,43 @@ void simulatorStep(Simulator *s, double dt)
         }
         
 
-        if (eventGetParticle1(nextEvent))
+        bool *recalculate = calloc((size_t)s->numberOfParticles, sizeof(bool));
+        if (recalculate == NULL)
         {
-            Event *next = particleSearchNextEvent(eventGetParticle1(nextEvent), s);
-            updateNextEvent(s, next);
+            fprintf(stderr, "simulatorStep: allocation error.\n");
+            exit(1);
         }
-        if (eventGetParticle2(nextEvent))
+
+        for (int i = 0; i < s->numberOfParticles; i++)
         {
-            Event *next = particleSearchNextEvent(eventGetParticle2(nextEvent), s);
-            updateNextEvent(s, next);
+            Event *storedEvent = s->nextEvents[i];
+            if (storedEvent == NULL)
+            {
+                continue;
+            }
+
+            Particle *particle1 = eventGetParticle1(nextEvent);
+            Particle *particle2 = eventGetParticle2(nextEvent);
+            if (storedEvent == nextEvent ||
+                eventGetParticle1(storedEvent) == particle1 ||
+                (particle2 != NULL &&
+                 (eventGetParticle1(storedEvent) == particle2 ||
+                  eventGetParticle2(storedEvent) == particle1 ||
+                  eventGetParticle2(storedEvent) == particle2)))
+            {
+                recalculate[i] = true;
+            }
         }
-        eventFree(nextEvent);
 
-
-
+        for (int i = 0; i < s->numberOfParticles; i++)
+        {
+            if (recalculate[i])
+            {
+                Event *next = particleSearchNextEvent(s->particles[i], s);
+                updateNextEvent(s, i, next);
+            }
+        }
+        free(recalculate);
     }
 }
 
